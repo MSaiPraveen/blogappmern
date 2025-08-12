@@ -1,0 +1,97 @@
+/* Reset and Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Segoe UI", sans-serif;
+  background-color: #f5f7fa;
+  color: #333;
+  padding: 20px;
+}
+
+/* Layout */
+.container {
+  max-width: 800px;
+  margin: auto;
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Headings */
+h2 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Posts */
+.post {
+  background-color: #f9f9f9;
+  border: 1px solid #e2e2e2;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+.post:hover {
+  background-color: #f0f0f0;
+}
+
+.post a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.post a:hover {
+  text-decoration: underline;
+}
+
+/* Form Fields */
+input,
+textarea {
+  width: 100%;
+  padding: 12px;
+  margin-top: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* Buttons */
+button {
+  padding: 10px 20px;
+  margin: 10px 5px 0 0;
+  border: none;
+  border-radius: 8px;
+  background-color: #007bff;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* Misc */
+p {
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
