@@ -1,3 +1,4 @@
+// server/models/post.js
 const mongoose = require("mongoose");
 
 const postSchema = new mongoose.Schema(
@@ -13,8 +14,8 @@ const postSchema = new mongoose.Schema(
     },
 
     image: {
-      type: String, // URL from Cloudinary
-      default: "",
+      data: Buffer, // binary image data
+      contentType: String, // e.g., 'image/png'
     },
 
     author: {

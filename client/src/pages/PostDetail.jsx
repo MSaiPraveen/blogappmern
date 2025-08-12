@@ -69,6 +69,7 @@ export default function PostDetail() {
 
   if (!post) return <p>Loading post...</p>;
   const isAuthor = post.author?._id === userId;
+  const imageUrl = `${API.defaults.baseURL}/posts/${id}/image`;
 
   return (
     <div className="container">
@@ -77,19 +78,20 @@ export default function PostDetail() {
         <strong>By:</strong> {post.author.username}
       </p>
 
-      {post.image && (
-        <img
-          src={post.image}
-          alt={post.title}
-          style={{
-            width: "100%",
-            maxHeight: "400px",
-            objectFit: "cover",
-            marginBottom: "20px",
-            borderRadius: "10px",
-          }}
-        />
-      )}
+      <img
+        src={imageUrl}
+        alt={post.title}
+        onError={(e) => {
+          e.currentTarget.style.display = "none";
+        }}
+        style={{
+          width: "100%",
+          maxHeight: "400px",
+          objectFit: "cover",
+          marginBottom: "20px",
+          borderRadius: "10px",
+        }}
+      />
 
       <p style={{ fontSize: "1.1rem", lineHeight: "1.6" }}>{post.content}</p>
 
