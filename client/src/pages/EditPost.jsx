@@ -7,6 +7,7 @@ export default function EditPost() {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [imageFile, setImageFile] = useState(null); // optional new image
 
   useEffect(() => {
     API.get(`/posts/${id}`).then((res) => {
@@ -16,7 +17,12 @@ export default function EditPost() {
   }, [id]);
 
   const handleUpdate = async () => {
-    await API.put(`/posts/${id}`, { title, content });
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("content", content);
+    if (imageFile) formData.append("image", imageFile);
+
+    await API.put(`/posts/${id}`, formData);
     navigate(`/post/${id}`);
   };
 
@@ -34,6 +40,27 @@ export default function EditPost() {
         placeholder="Content"
         value={content}
         onChange={(e) => setContent(e.target.value)}
+      />
+      <br />
+      <br />
+      {/* Current image preview (if exists) */}
+      <img
+        src={`${API.defaults.baseURL}/posts/${id}/image`}
+        alt="Current"
+        onError={(e) => (e.currentTarget.style.display = "none")}
+        style={{
+          width: "100%",
+          maxHeight: "300px",
+          objectFit: "cover",
+          marginBottom: "10px",
+          borderRadius: "8px",
+        }}
+      />
+      {/* Select a new image to replace */}
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setImageFile(e.target.files[0])}
       />
       <br />
       <br />

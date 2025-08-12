@@ -1,62 +1,33 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api";
-
-const IMGUR_CLIENT_ID = "57c03446462685e"; // ✅ Replace with your real Imgur Client-ID
+// Imgur removed: we now upload directly to our backend using multipart/form-data
 
 export default function CreatePost() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [image, setImage] = useState(null); // Local file
-  const [imageUrl, setImageUrl] = useState(""); // Uploaded URL
   const navigate = useNavigate();
-
-  // 🔼 Upload to Imgur
-  const handleImageUpload = async () => {
-    if (!image) {
-      alert("Please select an image first.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("image", image);
-
-    try {
-      const res = await fetch("https://api.imgur.com/3/image", {
-        method: "POST",
-        headers: {
-          Authorization: `Client-ID ${IMGUR_CLIENT_ID}`,
-        },
-        body: formData,
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.error("❌ Imgur upload failed:", data);
-        alert("Image upload failed");
-        return;
-      }
-
-      console.log("✅ Imgur upload successful:", data);
-      setImageUrl(data.data.link);
-    } catch (err) {
-      console.error("❌ Upload failed:", err);
-      alert("Upload failed: " + err.message);
-    }
-  };
 
   // 📝 Create a post
   const handleCreate = async () => {
     try {
-      await API.post("/posts", {
-        title,
-        content,
-        image: imageUrl,
-      });
+      if (!title || !content) {
+        alert("Title and content are required");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("content", content);
+      if (image) formData.append("image", image);
+
+      // Let Axios set the correct Content-Type with boundary automatically
+      await API.post("/posts", formData);
 
       navigate("/");
-    } catch {
+    } catch (err) {
+      console.error("Create post failed:", err?.response?.data || err.message);
       alert("Failed to create post");
     }
   };
@@ -88,20 +59,6 @@ export default function CreatePost() {
       />
       <br />
       <br />
-
-      <button type="button" onClick={handleImageUpload}>
-        Upload Image
-      </button>
-      <br />
-      <br />
-
-      {imageUrl && (
-        <img
-          src={imageUrl}
-          alt="Preview"
-          style={{ maxWidth: "100%", borderRadius: "10px" }}
-        />
-      )}
 
       <br />
       <button onClick={handleCreate}>Publish</button>
