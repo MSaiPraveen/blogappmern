@@ -1,74 +1,104 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { socialService } from "../api";
 
-const FollowButton = ({ userId, isFollowing: initialIsFollowing, onFollowChange, size = "medium" }) => {
-  const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
-  const [loading, setLoading] = useState(false);
+const FollowButton = ({
+  currentUserId,
+  profileUserId,
+  isFollowingInitial = false,
+  onFollowerCountChange,
+  size = "medium",
+}) => {
+  console.log("FollowButton render", {
+    currentUserId,
+    profileUserId,
+    isFollowingInitial,
+  });
+
+  const [isFollowing, setIsFollowing] = useState(isFollowingInitial);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
 
-  const handleFollowToggle = async () => {
-    setLoading(true);
+  useEffect(() => {
+    setIsFollowing(isFollowingInitial);
+  }, [isFollowingInitial]);
+
+  const disabledBecauseOwnProfile = !currentUserId || String(currentUserId) === String(profileUserId);
+
+  const handleToggle = async () => {
+    if (disabledBecauseOwnProfile || isLoading) return;
+
+    const prev = isFollowing;
+    const optimisticNew = !prev;
+
+    setIsFollowing(optimisticNew);
+    setError(null);
+    onFollowerCountChange?.(optimisticNew ? 1 : -1);
+
+    setIsLoading(true);
     try {
-      if (isFollowing) {
-        await socialService.unfollow(userId);
-        setIsFollowing(false);
-        onFollowChange?.({ userId, isFollowing: false });
+      if (optimisticNew) {
+        await socialService.follow(profileUserId);
       } else {
-        await socialService.follow(userId);
-        setIsFollowing(true);
-        onFollowChange?.({ userId, isFollowing: true });
+        await socialService.unfollow(profileUserId);
       }
-    } catch (error) {
-      console.error("Follow action failed:", error);
+    } catch (err) {
+      console.error("Follow request failed:", err);
+      setIsFollowing(prev);
+      onFollowerCountChange?.(prev ? 1 : -1);
+      setError("Action failed. Please try again.");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const sizeClasses = {
-    small: "follow-btn-sm",
-    medium: "follow-btn-md",
-    large: "follow-btn-lg",
+  const sizePadding = {
+    small: "0.35rem 0.9rem",
+    medium: "0.5rem 1.3rem",
+    large: "0.65rem 1.6rem",
+  };
+
+  const buttonStyle = {
+    padding: sizePadding[size] || sizePadding.medium,
+    borderRadius: "999px",
+    border: "none",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "0.4rem",
+    fontSize: "0.95rem",
+    fontWeight: 600,
+    cursor: isLoading || disabledBecauseOwnProfile ? "default" : "pointer",
+    opacity: isLoading ? 0.7 : 1,
+    backgroundColor: isFollowing ? (isHovered ? "#fee2e2" : "#e5e7eb") : "#6366f1",
+    color: isFollowing ? (isHovered ? "#b91c1c" : "#111827") : "#ffffff",
+    boxShadow: "0 2px 6px rgba(15,23,42,0.12)",
   };
 
   return (
-    <button
-      className={`follow-btn ${sizeClasses[size]} ${isFollowing ? "following" : ""} ${isHovered && isFollowing ? "unfollow" : ""}`}
-      onClick={handleFollowToggle}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      disabled={loading}
-    >
-      {loading ? (
-        <span className="follow-btn-spinner"></span>
-      ) : isFollowing ? (
-        isHovered ? (
-          <>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-            Unfollow
-          </>
-        ) : (
-          <>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M20 6L9 17l-5-5" />
-            </svg>
-            Following
-          </>
-        )
-      ) : (
-        <>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="8.5" cy="7" r="4" />
-            <line x1="20" y1="8" x2="20" y2="14" />
-            <line x1="23" y1="11" x2="17" y2="11" />
-          </svg>
-          Follow
-        </>
+    <div style={{ display: "inline-block", textAlign: "center" }}>
+      <button
+        style={buttonStyle}
+        onClick={handleToggle}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        disabled={isLoading || disabledBecauseOwnProfile}
+        aria-pressed={isFollowing}
+      >
+        {isLoading ? "..." : isFollowing ? (isHovered ? "Unfollow" : "Following") : "Follow"}
+      </button>
+      {error && (
+        <div
+          style={{
+            color: "#b91c1c",
+            fontSize: "0.8rem",
+            marginTop: 6,
+          }}
+        >
+          {error}
+        </div>
       )}
-    </button>
+    </div>
   );
 };
 
