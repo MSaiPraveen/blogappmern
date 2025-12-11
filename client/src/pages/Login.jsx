@@ -134,7 +134,8 @@ export default function Login() {
             onError={handleGoogleError}
             theme="outline"
             size="large"
-            width="100%"
+            // width must be a number (pixels) for GSI button. Avoid percentage value which GSI flags as invalid.
+            width={320}
             text="signin_with"
           />
           
