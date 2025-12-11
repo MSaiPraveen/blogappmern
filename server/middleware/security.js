@@ -4,6 +4,9 @@ const rateLimit = require("express-rate-limit");
 // Helmet configuration for security headers
 const helmetConfig = helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
+  // Allow popups (Google OAuth / One Tap) to communicate via postMessage by permitting popups
+  // Note: this relaxes strict COOP but is required for some OAuth flows that use window.postMessage
+  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
   contentSecurityPolicy: false, // Disable for API-only server
 });
 

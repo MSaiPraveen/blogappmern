@@ -215,7 +215,7 @@ router.put("/me/bookmarks/:postId", protect, async (req, res, next) => {
 router.get("/profile/:username", async (req, res, next) => {
   try {
     const user = await User.findOne({ username: req.params.username })
-      .select("username name bio avatar createdAt role");
+      .select("username name bio avatar createdAt role followers following");
 
     if (!user) {
       throw new ApiError(404, "User not found");

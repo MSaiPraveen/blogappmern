@@ -77,6 +77,11 @@
   display: flex;
   align-items: center;
   gap: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.post-follow-section {
+  margin-bottom: 1.5rem;
 }
 
 .post-author-info .follow-btn {

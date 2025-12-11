@@ -11,21 +11,25 @@ const apiCache = new ApiCache({
   defaultTTL: 5 * 60 * 1000 // 5 minutes
 });
 
+// Helper to generate cache keys (used for delete + get)
+const makeCacheKey = (url, config = {}) =>
+  `${url}${config.params ? JSON.stringify(config.params) : ""}`;
+
 // Helper function for cached GET requests
 const cachedGet = async (url, config = {}, ttl = null) => {
-  const cacheKey = `${url}${config.params ? JSON.stringify(config.params) : ''}`;
-  
+  const cacheKey = makeCacheKey(url, config);
+
   // Check cache first
   if (apiCache.has(cacheKey)) {
     return { data: apiCache.get(cacheKey), fromCache: true };
   }
-  
+
   // Make API request
   const response = await API.get(url, config);
-  
+
   // Cache the response
   apiCache.set(cacheKey, response.data, ttl);
-  
+
   return response;
 };
 
@@ -173,10 +177,26 @@ export const analyticsService = {
 
 // Social services
 export const socialService = {
-  follow: (userId) => API.post(`/social/follow/${userId}`),
-  unfollow: (userId) => API.delete(`/social/unfollow/${userId}`),
-  getFollowers: (userId, params) => cachedGet(`/social/${userId}/followers`, { params }, 60 * 1000),
-  getFollowing: (userId, params) => cachedGet(`/social/${userId}/following`, { params }, 60 * 1000),
+  follow: async (userId) => {
+    const res = await API.post(`/social/follow/${userId}`);
+    // Invalidate related caches so UI reflects new follower counts immediately
+    apiCache.delete(makeCacheKey(`/social/user/${userId}/followers`));
+    apiCache.delete(makeCacheKey(`/users/profile/${userId}`));
+    return res;
+  },
+
+  unfollow: async (userId) => {
+    // Server exposes DELETE /api/social/follow/:userId
+    const res = await API.delete(`/social/follow/${userId}`);
+    // Invalidate related caches so UI reflects new follower counts immediately
+    apiCache.delete(makeCacheKey(`/social/user/${userId}/followers`));
+    apiCache.delete(makeCacheKey(`/users/profile/${userId}`));
+    return res;
+  },
+
+  // Server public endpoints use /social/user/:userId/... (see server/routes/social.js)
+  getFollowers: (userId, params) => cachedGet(`/social/user/${userId}/followers`, { params }, 60 * 1000),
+  getFollowing: (userId, params) => cachedGet(`/social/user/${userId}/following`, { params }, 60 * 1000),
   getFeed: (params) => API.get("/social/feed", { params }),
   share: (postId, platform) => API.post("/social/share", { postId, platform }),
 };

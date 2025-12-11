@@ -35,6 +35,9 @@ export default function PostDetail() {
       
       // Check if user has bookmarked this post
       checkBookmarkStatus();
+      
+      // Check if user is following the author
+      checkFollowStatus();
     } else if (post) {
       setLikeCount(post.likes?.length || 0);
     }
@@ -48,6 +51,18 @@ export default function PostDetail() {
       setIsBookmarked(bookmarks.some(b => b._id === post._id));
     } catch (err) {
       console.error("Failed to check bookmark status", err);
+    }
+  };
+
+  const checkFollowStatus = async () => {
+    if (!isAuthenticated || !post?.author?._id) return;
+    try {
+      // Check if current user is following the post author
+      const res = await userService.getMe();
+      const currentUser = res.data;
+      setIsFollowingAuthor(currentUser.following?.includes(post.author._id) || false);
+    } catch (err) {
+      console.error("Failed to check follow status", err);
     }
   };
 
@@ -188,16 +203,20 @@ export default function PostDetail() {
                 {post.updatedAt !== post.createdAt && ' (updated)'}
               </span>
             </div>
-            {/* Follow Button - show if logged in and not own post */}
-            {isAuthenticated && user?._id !== post.author?._id && user?.id !== post.author?._id && (
-              <FollowButton
-                userId={post.author?._id}
-                isFollowing={isFollowingAuthor}
-                onFollowChange={({ isFollowing }) => setIsFollowingAuthor(isFollowing)}
-                size="small"
-              />
-            )}
           </div>
+          
+          {/* Follow Button - separate section for better UX */}
+            {isAuthenticated && user && post.author && String(user._id || user.id) !== String(post.author._id) && (
+            <div className="post-follow-section">
+                  <FollowButton
+                    currentUserId={user._id || user.id}
+                    profileUserId={post.author._id}
+                    isFollowingInitial={isFollowingAuthor}
+                    onFollowerCountChange={() => {}}
+                    size="small"
+                  />
+            </div>
+          )}
         </header>
 
         {/* Featured Image */}
