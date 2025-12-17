@@ -8,7 +8,7 @@ require("dotenv").config();
 const connectDB = require("./config/db");
 
 // Middleware
-const { helmetConfig, apiLimiter } = require("./middleware/security");
+const { helmetConfig, apiLimiter, analyticsLimiter } = require("./middleware/security");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 const { 
   xssSanitizer, 
@@ -76,7 +76,7 @@ app.use("/api/posts", require("./routes/posts"));
 app.use("/api/comments", require("./routes/comments"));
 app.use("/api/users", require("./routes/users"));
 app.use("/api/categories", require("./routes/categories"));
-app.use("/api/analytics", require("./routes/analytics"));
+app.use("/api/analytics", analyticsLimiter, require("./routes/analytics")); // Use separate limiter for analytics
 app.use("/api/social", require("./routes/social"));
 app.use("/api/notifications", require("./routes/notifications"));
 app.use("/api/newsletter", require("./routes/newsletter"));

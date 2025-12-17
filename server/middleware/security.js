@@ -13,13 +13,26 @@ const helmetConfig = helmet({
 // Rate limiter for general API requests
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 500, // Limit each IP to 500 requests per windowMs (increased for SPA with analytics)
   message: {
     success: false,
     message: "Too many requests, please try again later.",
   },
   standardHeaders: true,
   legacyHeaders: false,
+});
+
+// Separate rate limiter for analytics (more permissive since it's called frequently)
+const analyticsLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // Analytics can be called more frequently
+  message: {
+    success: false,
+    message: "Too many analytics requests.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.method === 'OPTIONS', // Skip preflight requests
 });
 
 // Stricter rate limiter for auth routes
@@ -34,4 +47,4 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-module.exports = { helmetConfig, apiLimiter, authLimiter };
+module.exports = { helmetConfig, apiLimiter, authLimiter, analyticsLimiter };
