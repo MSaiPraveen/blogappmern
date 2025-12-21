@@ -5,8 +5,8 @@ import CommentForm from "./CommentForm";
 import CommentThread from "./CommentThread";
 import "../styles/comments.css";
 
-const CommentsSection = ({ postId, postAuthorId }) => {
-  const { isAuthenticated } = useAuth();
+const CommentsSection = ({ postId, postAuthorId: _postAuthorId }) => {
+  const { isAuthenticated: _isAuthenticated } = useAuth();
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState("best"); // best, newest, oldest
@@ -49,7 +49,7 @@ const CommentsSection = ({ postId, postAuthorId }) => {
     setTotalComments(prev => prev + 1);
   };
 
-  const handleReplyAdded = (reply) => {
+  const handleReplyAdded = () => {
     setTotalComments(prev => prev + 1);
   };
 

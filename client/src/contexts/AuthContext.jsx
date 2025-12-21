@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
         try {
           const res = await authService.getMe();
           setUser(res.data.user);
-        } catch (err) {
+        } catch {
           // Token invalid, clear it
           localStorage.removeItem("token");
           localStorage.removeItem("user");

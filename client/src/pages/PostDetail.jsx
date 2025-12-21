@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { postService, userService, socialService } from "../api";
+import { postService, userService } from "../api";
 import { useAuth } from "../contexts/AuthContext";
 import Loader from "../components/Loader";
 import SEO from "../components/SEO";
@@ -115,7 +115,7 @@ export default function PostDetail() {
     try {
       await postService.delete(post._id);
       navigate("/");
-    } catch (err) {
+    } catch {
       alert("Failed to delete post");
     }
   };

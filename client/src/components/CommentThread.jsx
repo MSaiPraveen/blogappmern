@@ -258,7 +258,7 @@ const CommentThread = ({
               comment={reply}
               postId={postId}
               depth={depth + 1}
-              onReplyAdded={(newReply) => {
+              onReplyAdded={() => {
                 // Handle nested reply
               }}
               onCommentDeleted={(deletedId) => {

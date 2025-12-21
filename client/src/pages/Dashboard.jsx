@@ -62,7 +62,7 @@ export default function Dashboard() {
     try {
       await postService.delete(postId);
       setPosts(posts.filter(p => p._id !== postId));
-    } catch (err) {
+    } catch {
       alert("Failed to delete post");
     }
   };

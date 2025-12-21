@@ -35,7 +35,7 @@ export default function Profile() {
       setDisplayName(userData.username || "");
       setEmail(userData.email || "");
       setBio(userData.bio || "");
-    } catch (err) {
+    } catch {
       // Fallback to token data
       setDisplayName(user?.username || "");
       setEmail(user?.email || "");

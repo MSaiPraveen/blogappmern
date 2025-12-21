@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { postService, commentService, userService, categoryService } from "../api";
+import { postService, commentService, categoryService } from "../api";
 import { useAuth } from "../contexts/AuthContext";
 import Loader from "../components/Loader";
 import "../styles/admin.css";
@@ -75,7 +75,7 @@ export default function AdminDashboard() {
       setPendingComments(pendingComments.filter(c => c._id !== commentId));
       setMessage(`Comment ${status === 'approved' ? 'approved' : 'rejected'} successfully`);
       setTimeout(() => setMessage(""), 3000);
-    } catch (err) {
+    } catch {
       setError("Failed to moderate comment");
     }
   };
@@ -88,7 +88,7 @@ export default function AdminDashboard() {
       setAllPosts(allPosts.filter(p => p._id !== postId));
       setMessage("Post deleted successfully");
       setTimeout(() => setMessage(""), 3000);
-    } catch (err) {
+    } catch {
       setError("Failed to delete post");
     }
   };
@@ -116,7 +116,7 @@ export default function AdminDashboard() {
       setCategories(categories.filter(c => c._id !== categoryId));
       setMessage("Category deleted successfully");
       setTimeout(() => setMessage(""), 3000);
-    } catch (err) {
+    } catch {
       setError("Failed to delete category");
     }
   };
