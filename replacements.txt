@@ -1,2 +1,0 @@
-mongodb+srv://mspraveen919:f4EylmlWrTW3mmjS@cluster0.d5tgvbw.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0==>REDACTED_MONGO_URI
-superSecretKey123==>REDACTED_JWT_SECRET
