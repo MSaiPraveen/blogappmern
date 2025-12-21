@@ -5,8 +5,8 @@ import CommentForm from "./CommentForm";
 import CommentThread from "./CommentThread";
 import "../styles/comments.css";
 
-const CommentsSection = ({ postId, postAuthorId: _postAuthorId }) => {
-  const { isAuthenticated: _isAuthenticated } = useAuth();
+const CommentsSection = ({ postId }) => {
+  useAuth(); // Keep context connection
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState("best"); // best, newest, oldest
