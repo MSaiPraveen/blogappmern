@@ -1,0 +1,67 @@
+# Development Docker Compose - with hot reloading
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7
+    container_name: blogapp-mongodb-dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: blogapp
+    volumes:
+      - mongodb_data_dev:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - blogapp-network-dev
+
+  # Backend Server with hot reload
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.dev
+    container_name: blogapp-server-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      MONGO_URI: mongodb://admin:password123@mongodb:27017/blogapp?authSource=admin
+      JWT_SECRET: dev-secret-key
+      CLIENT_URL: http://localhost:5173
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    depends_on:
+      - mongodb
+    networks:
+      - blogapp-network-dev
+
+  # Frontend Client with hot reload
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
+    container_name: blogapp-client-dev
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:5000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - server
+    networks:
+      - blogapp-network-dev
+
+networks:
+  blogapp-network-dev:
+    driver: bridge
+
+volumes:
+  mongodb_data_dev:
+    driver: local

@@ -1,0 +1,73 @@
+# Production docker-compose for deployment server
+# Use this on your VPS/Cloud server
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: blogapp-mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: blogapp
+    volumes:
+      - mongodb_data:/data/db
+      - ./backups:/backups
+    networks:
+      - blogapp-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  server:
+    image: ghcr.io/${GITHUB_REPOSITORY}/server:latest
+    container_name: blogapp-server
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      MONGO_URI: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb:27017/blogapp?authSource=admin
+      JWT_SECRET: ${JWT_SECRET}
+      CLIENT_URL: ${CLIENT_URL}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - blogapp-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  client:
+    image: ghcr.io/${GITHUB_REPOSITORY}/client:latest
+    container_name: blogapp-client
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      server:
+        condition: service_healthy
+    networks:
+      - blogapp-network
+    volumes:
+      - ./ssl:/etc/nginx/ssl:ro  # For HTTPS certificates
+
+networks:
+  blogapp-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local

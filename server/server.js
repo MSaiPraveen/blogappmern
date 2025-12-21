@@ -19,6 +19,9 @@ const {
 
 const app = express();
 
+// Trust proxy (required when behind Nginx/Docker)
+app.set('trust proxy', 1);
+
 // Connect to Database
 connectDB();
 
@@ -26,6 +29,9 @@ connectDB();
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
+  'http://localhost',
+  'http://127.0.0.1',
+  'http://127.0.0.1:80',
   process.env.CLIENT_URL,
 ].filter(Boolean);
 

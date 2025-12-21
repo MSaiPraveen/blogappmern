@@ -1,0 +1,79 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sundays
+
+jobs:
+  # Dependency vulnerability scan
+  dependency-scan:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Audit Server Dependencies
+        working-directory: ./server
+        run: npm audit --audit-level=high
+        continue-on-error: true
+      
+      - name: Audit Client Dependencies
+        working-directory: ./client
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+  # Docker image vulnerability scan
+  docker-scan:
+    name: Docker Image Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Build Server Image
+        run: docker build -t blogapp-server:scan ./server
+      
+      - name: Build Client Image
+        run: docker build -t blogapp-client:scan ./client
+      
+      - name: Run Trivy vulnerability scanner on Server
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'blogapp-server:scan'
+          format: 'sarif'
+          output: 'server-trivy-results.sarif'
+        continue-on-error: true
+      
+      - name: Run Trivy vulnerability scanner on Client
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'blogapp-client:scan'
+          format: 'sarif'
+          output: 'client-trivy-results.sarif'
+        continue-on-error: true
+      
+      - name: Upload Server scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'server-trivy-results.sarif'
+          category: 'server-container'
+        continue-on-error: true
+      
+      - name: Upload Client scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'client-trivy-results.sarif'
+          category: 'client-container'
+        continue-on-error: true

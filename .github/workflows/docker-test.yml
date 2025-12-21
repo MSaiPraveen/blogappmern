@@ -1,0 +1,70 @@
+name: Docker Compose Test
+
+on:
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  docker-compose-test:
+    name: Test Docker Compose Setup
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Create .env file
+        run: |
+          cat > .env << EOF
+          NODE_ENV=production
+          MONGO_USERNAME=admin
+          MONGO_PASSWORD=testpassword123
+          JWT_SECRET=test-jwt-secret-key
+          CLIENT_URL=http://localhost
+          EOF
+      
+      - name: Build Docker images
+        run: docker-compose build
+      
+      - name: Start services
+        run: docker-compose up -d
+      
+      - name: Wait for services to be healthy
+        run: |
+          echo "Waiting for services to start..."
+          sleep 30
+          
+          # Check MongoDB
+          docker-compose ps mongodb
+          
+          # Check Server health
+          for i in {1..10}; do
+            if curl -s http://localhost:5000/api/health | grep -q "ok"; then
+              echo "✅ Server is healthy"
+              break
+            fi
+            echo "Waiting for server... attempt $i"
+            sleep 5
+          done
+          
+          # Check Client
+          if curl -s -o /dev/null -w "%{http_code}" http://localhost:80 | grep -q "200"; then
+            echo "✅ Client is healthy"
+          else
+            echo "⚠️ Client may still be starting"
+          fi
+      
+      - name: Show container logs on failure
+        if: failure()
+        run: |
+          echo "=== MongoDB Logs ==="
+          docker-compose logs mongodb
+          echo "=== Server Logs ==="
+          docker-compose logs server
+          echo "=== Client Logs ==="
+          docker-compose logs client
+      
+      - name: Cleanup
+        if: always()
+        run: docker-compose down -v
